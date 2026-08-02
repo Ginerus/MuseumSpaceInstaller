@@ -63,8 +63,7 @@
         <Grid Grid.Column="1" Background="White">
             <Frame x:Name="MainFrame" 
                    NavigationUIVisibility="Hidden" 
-                   Margin="40"
-                   Content="{Binding CurrentPage}"/>
+                   Margin="40"/>
         </Grid>
     </Grid>
 </Window>

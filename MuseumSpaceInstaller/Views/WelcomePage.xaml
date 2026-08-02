@@ -84,7 +84,7 @@
                 <TextBlock Text="Требования к системе" 
                            FontSize="13" FontWeight="SemiBold" 
                            Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                <TextBlock Text="• Windows 10 / 11 (x86 или x64)&#x0A;• Административные права&#x0A;• ~300 МБ свободного места" 
+                <TextBlock Text="• Windows 10 / 11 (x86 или x64)&#x0A;• ~300 МБ свободного места" 
                            FontSize="12" 
                            Foreground="{StaticResource TextSecondary}"
                            TextWrapping="Wrap"/>

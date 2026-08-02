@@ -15,16 +15,14 @@ namespace MuseumSpaceInstaller
             _viewModel = new InstallerViewModel();
             DataContext = _viewModel;
 
-            // Навигация по стадиям
+            // ← добавлено: сразу показываем WelcomePage
+            MainFrame.Navigate(new WelcomePage { DataContext = _viewModel });
+
             _viewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(InstallerViewModel.CurrentStage))
-                {
                     UpdatePage();
-                }
             };
-
-            UpdatePage();
         }
 
         private void UpdatePage()
