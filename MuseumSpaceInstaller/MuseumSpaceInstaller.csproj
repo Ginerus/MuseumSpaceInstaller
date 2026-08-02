@@ -45,5 +45,9 @@
         <Compile Include="MuseumSpaceSetup.iss" />
 	    <Resource Include="Resources\logo.png" />
     </ItemGroup>
+	
+	<ItemGroup>
+	  <Folder Include="Payload\" />
+	</ItemGroup>
 
 </Project>
