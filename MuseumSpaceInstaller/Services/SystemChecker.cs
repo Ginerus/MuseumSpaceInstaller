@@ -1,8 +1,6 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 
 namespace MuseumSpaceInstaller.Services
@@ -124,7 +122,8 @@ namespace MuseumSpaceInstaller.Services
 
         public static bool IsSystemDirectory(string path)
         {
-            var full = Path.GetFullPath(path).TrimEnd('\', '/').ToLowerInvariant();
+            var full = Path.GetFullPath(path).TrimEnd('\\', '/').ToLowerInvariant();
+
             var systemPaths = new[]
             {
                 @"c:\",
