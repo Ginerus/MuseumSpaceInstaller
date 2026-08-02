@@ -122,13 +122,20 @@ namespace MuseumSpaceInstaller.Services
                 }
 
                 Report("Создание ярлыков", 75, "Создание ярлыков...");
-                if (_manifest.Shortcuts.StartMenu)
+                string iconPath = Path.Combine(_installPath, "logo.png");
+                if (File.Exists(iconPath))
                 {
-                    ShortcutHelper.CreateStartMenuShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
+                    if (_manifest.Shortcuts.StartMenu)
+                        ShortcutHelper.CreateStartMenuShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName), iconPath);
+                    if (_createDesktopShortcut && _manifest.Shortcuts.Desktop)
+                        ShortcutHelper.CreateDesktopShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName), iconPath);
                 }
-                if (_createDesktopShortcut && _manifest.Shortcuts.Desktop)
+                else
                 {
-                    ShortcutHelper.CreateDesktopShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
+                    if (_manifest.Shortcuts.StartMenu)
+                        ShortcutHelper.CreateStartMenuShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
+                    if (_createDesktopShortcut && _manifest.Shortcuts.Desktop)
+                        ShortcutHelper.CreateDesktopShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
                 }
                 await Task.Delay(200, cancellationToken);
 

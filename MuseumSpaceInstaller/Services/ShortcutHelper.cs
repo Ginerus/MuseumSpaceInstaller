@@ -6,21 +6,21 @@ namespace MuseumSpaceInstaller.Services
 {
     public static class ShortcutHelper
     {
-        public static void CreateDesktopShortcut(string name, string targetPath)
+        public static void CreateDesktopShortcut(string name, string targetPath, string? iconPath = null)
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            CreateShortcut(Path.Combine(desktopPath, $"{name}.lnk"), targetPath);
+            CreateShortcut(Path.Combine(desktopPath, $"{name}.lnk"), targetPath, iconPath);
         }
 
-        public static void CreateStartMenuShortcut(string name, string targetPath)
+        public static void CreateStartMenuShortcut(string name, string targetPath, string? iconPath = null)
         {
             string startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
             string appFolder = Path.Combine(startMenuPath, "Programs", "MuseumSpace");
             Directory.CreateDirectory(appFolder);
-            CreateShortcut(Path.Combine(appFolder, $"{name}.lnk"), targetPath);
+            CreateShortcut(Path.Combine(appFolder, $"{name}.lnk"), targetPath, iconPath);
         }
 
-        private static void CreateShortcut(string shortcutPath, string targetPath)
+        private static void CreateShortcut(string shortcutPath, string targetPath, string? iconPath = null)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace MuseumSpaceInstaller.Services
                 IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
                 shortcut.TargetPath = targetPath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath) ?? string.Empty;
-                shortcut.IconLocation = targetPath + ",0";
+                shortcut.IconLocation = iconPath ?? (targetPath + ",0");
                 shortcut.Save();
             }
             catch { }

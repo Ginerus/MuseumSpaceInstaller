@@ -24,17 +24,23 @@
 
                 <!-- Логотип / Иконка -->
                 <StackPanel Grid.Row="0" Margin="0,60,0,0">
-                    <Border Width="80" Height="80" Background="White" CornerRadius="16" HorizontalAlignment="Left">
-                        <TextBlock Text="🏛" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Width="150" Height="150" Background="White" CornerRadius="16" HorizontalAlignment="Center">
+                        <Image Source="/Resources/logo.png" 
+                               Width="140" Height="140" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               Stretch="Uniform"/>
                     </Border>
                     <TextBlock Text="MuseumSpace" 
                                FontSize="24" FontWeight="Bold" 
                                Foreground="White" 
-                               Margin="0,20,0,0"/>
+                               Margin="0,20,0,0"
+                               HorizontalAlignment="Center"/>
                     <TextBlock Text="Система управления экспонатами" 
                                FontSize="13" 
                                Foreground="#B8D4F0" 
                                Margin="0,6,0,0"
+                               HorizontalAlignment="Center"
                                TextWrapping="Wrap"/>
                 </StackPanel>
 
