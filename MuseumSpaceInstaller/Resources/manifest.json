@@ -1,0 +1,40 @@
+{
+  "applicationName": "MuseumSpace",
+  "displayName": "MuseumSpace — Система управления экспонатами",
+  "version": "1.0.0",
+  "publisher": "MuseumSpace Team",
+  "executableName": "MuseumSpace.exe",
+  "defaultInstallPath": "C:\\Program Files\\MuseumSpace",
+  "requiredSpaceMB": 300,
+  "configFiles": [
+    "AppSettings.json"
+  ],
+  "architecture": {
+    "x86": {
+      "libvlcPath": "libvlc\\win-x86",
+      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.x-win-x86.exe"
+    },
+    "x64": {
+      "libvlcPath": "libvlc\\win-x64",
+      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.x-win-x64.exe"
+    }
+  },
+  "shortcuts": {
+    "desktop": true,
+    "startMenu": true
+  },
+  "registry": {
+    "displayName": "MuseumSpace",
+    "publisher": "MuseumSpace Team",
+    "displayVersion": "1.0.0",
+    "installLocation": "{INSTALL_DIR}",
+    "uninstallString": "\"{INSTALL_DIR}\\Uninstall.exe\"",
+    "displayIcon": "{INSTALL_DIR}\\MuseumSpace.exe",
+    "helpLink": "",
+    "urlInfoAbout": "",
+    "noModify": 1,
+    "noRepair": 1
+  },
+  "upgradeCode": "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}",
+  "productCode": "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
+}
