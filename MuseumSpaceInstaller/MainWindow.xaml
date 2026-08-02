@@ -1,12 +1,70 @@
-﻿<Window x:Class="MuseumSpaceInstaller.MainWindow"
+<Window x:Class="MuseumSpaceInstaller.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MuseumSpaceInstaller"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Установка MuseumSpace"
+        Height="560" Width="880"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        Background="White"
+        FontFamily="{StaticResource DefaultFont}">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- Левая синяя панель -->
+        <Border Grid.Column="0" Background="{StaticResource PrimaryBlue}">
+            <Grid Margin="40,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Логотип / Иконка -->
+                <StackPanel Grid.Row="0" Margin="0,60,0,0">
+                    <Border Width="80" Height="80" Background="White" CornerRadius="16" HorizontalAlignment="Left">
+                        <TextBlock Text="🏛" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="MuseumSpace" 
+                               FontSize="24" FontWeight="Bold" 
+                               Foreground="White" 
+                               Margin="0,20,0,0"/>
+                    <TextBlock Text="Система управления экспонатами" 
+                               FontSize="13" 
+                               Foreground="#B8D4F0" 
+                               Margin="0,6,0,0"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Информация об установке -->
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,40">
+                    <TextBlock Text="Версия" FontSize="11" Foreground="#8BB8E8" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding Manifest.Version}" FontSize="14" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Архитектура" FontSize="11" Foreground="#8BB8E8" Margin="0,0,0,4"/>
+                    <TextBlock Text="x86 / x64" FontSize="14" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Размер" FontSize="11" Foreground="#8BB8E8" Margin="0,0,0,4"/>
+                    <TextBlock Text="~237 МБ" FontSize="14" Foreground="White" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Низ панели -->
+                <TextBlock Grid.Row="2" 
+                           Text="© MuseumSpace Team" 
+                           FontSize="11" 
+                           Foreground="#8BB8E8" 
+                           Margin="0,0,0,30"/>
+            </Grid>
+        </Border>
+
+        <!-- Правая панель контента -->
+        <Grid Grid.Column="1" Background="White">
+            <Frame x:Name="MainFrame" 
+                   NavigationUIVisibility="Hidden" 
+                   Margin="40"
+                   Content="{Binding CurrentPage}"/>
+        </Grid>
     </Grid>
 </Window>
