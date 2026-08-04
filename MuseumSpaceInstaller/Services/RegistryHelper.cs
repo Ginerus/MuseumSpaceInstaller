@@ -18,8 +18,8 @@ namespace MuseumSpaceInstaller.Services
             key.SetValue("InstallLocation", installPath);
             key.SetValue("UninstallString", manifest.Registry.UninstallString.Replace("{INSTALL_DIR}", installPath));
 
-            // »конка: logo.png если есть, иначе exe
-            string iconPath = Path.Combine(installPath, "logo.png");
+            // »конка: logo.ico если есть, иначе exe
+            string iconPath = Path.Combine(installPath, "logo.ico");
             if (File.Exists(iconPath))
                 key.SetValue("DisplayIcon", iconPath);
             else

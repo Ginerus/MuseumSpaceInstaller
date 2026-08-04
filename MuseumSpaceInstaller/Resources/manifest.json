@@ -12,11 +12,11 @@
   "architecture": {
     "x86": {
       "libvlcPath": "libvlc\\win-x86",
-      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.x-win-x86.exe"
+      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.29-win-x86.exe"
     },
     "x64": {
       "libvlcPath": "libvlc\\win-x64",
-      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.x-win-x64.exe"
+      "dotnetRuntimeInstaller": "dotnet-runtime\\windowsdesktop-runtime-8.0.29-win-x64.exe"
     }
   },
   "shortcuts": {

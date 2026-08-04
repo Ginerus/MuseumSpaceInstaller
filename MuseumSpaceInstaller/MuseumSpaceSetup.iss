@@ -2,10 +2,10 @@
 ; Один exe для x86 и x64
 
 [Setup]
-AppName = MuseumSpace
-AppVersion = 1.0.0
-AppPublisher = MuseumSpace Team
-DefaultDirName = { autopf }\MuseumSpace
+AppName=MuseumSpace
+AppVersion=1.0.0
+AppPublisher=MuseumSpace Team
+DefaultDirName={autopf}\MuseumSpace
 DefaultGroupName=MuseumSpace
 OutputDir=.\Output
 OutputBaseFilename=MuseumSpace_Setup
@@ -17,7 +17,8 @@ DisableWelcomePage=no
 DisableDirPage=no
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\MuseumSpace.exe
-UninstallDisplayName = MuseumSpace
+UninstallDisplayName=MuseumSpace
+SetupIconFile=Resources\logo.ico
 
 [Languages]
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"

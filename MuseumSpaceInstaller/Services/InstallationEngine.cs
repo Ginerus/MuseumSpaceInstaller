@@ -122,7 +122,7 @@ namespace MuseumSpaceInstaller.Services
                 }
 
                 Report("Создание ярлыков", 75, "Создание ярлыков...");
-                string iconPath = Path.Combine(_installPath, "logo.png");
+                string iconPath = Path.Combine(_installPath, "logo.ico");
                 if (File.Exists(iconPath))
                 {
                     if (_manifest.Shortcuts.StartMenu)
@@ -207,7 +207,7 @@ namespace MuseumSpaceInstaller.Services
 
                 try { File.Delete(tempPath); } catch { }
 
-                return process.ExitCode == 0 || process.ExitCode == 3010; // 3010 = success, reboot required
+                return process.ExitCode == 0 || process.ExitCode == 3010;
             }
             catch { return false; }
         }
