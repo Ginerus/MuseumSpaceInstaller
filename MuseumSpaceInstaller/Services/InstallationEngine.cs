@@ -60,7 +60,6 @@ namespace MuseumSpaceInstaller.Services
                 Directory.CreateDirectory(_installPath);
                 await Task.Delay(200, cancellationToken);
 
-                // Сохранение конфиг-файлов при обновлении
                 var backupDir = Path.Combine(Path.GetTempPath(), $"MuseumSpace_Backup_{Guid.NewGuid()}");
                 bool isUpdate = Directory.Exists(_installPath) && File.Exists(Path.Combine(_installPath, _manifest.ExecutableName));
                 if (isUpdate)
@@ -80,13 +79,13 @@ namespace MuseumSpaceInstaller.Services
                 }
 
                 Report("Копирование файлов", 40, "Копирование файлов приложения...");
-                string sourcePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Payload");
+                string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+                string sourcePath = Path.Combine(appDir, "Payload");
                 if (Directory.Exists(sourcePath))
                 {
                     await CopyDirectoryAsync(sourcePath, _installPath, cancellationToken);
                 }
 
-                // Копирование нужной архитектуры libvlc
                 Report("Копирование файлов", 60, $"Копирование библиотек для архитектуры {arch}...");
                 var archInfo = arch == "x64" ? _manifest.Architecture.X64 : _manifest.Architecture.X86;
                 string libvlcSource = Path.Combine(sourcePath, archInfo.LibVlcPath);
@@ -96,7 +95,6 @@ namespace MuseumSpaceInstaller.Services
                     await CopyDirectoryAsync(libvlcSource, libvlcDest, cancellationToken);
                 }
 
-                // Удаление ненужных архитектур libvlc если они попали
                 string libvlcX86 = Path.Combine(_installPath, "libvlc", "win-x86");
                 string libvlcX64 = Path.Combine(_installPath, "libvlc", "win-x64");
                 if (arch == "x64" && Directory.Exists(libvlcX86))
@@ -104,7 +102,6 @@ namespace MuseumSpaceInstaller.Services
                 if (arch == "x86" && Directory.Exists(libvlcX64))
                     Directory.Delete(libvlcX64, true);
 
-                // Восстановление конфиг-файлов
                 if (isUpdate && Directory.Exists(backupDir))
                 {
                     Report("Копирование файлов", 65, "Восстановление пользовательских настроек...");
@@ -169,7 +166,6 @@ namespace MuseumSpaceInstaller.Services
                 string installerName = Path.GetFileName(archInfo.DotnetRuntimeInstaller);
                 string tempPath = Path.Combine(Path.GetTempPath(), installerName);
 
-                // Извлечение встроенного установщика из ресурсов
                 string resourceName = $"MuseumSpaceInstaller.Resources.{installerName}";
                 var assembly = Assembly.GetExecutingAssembly();
                 using var stream = assembly.GetManifestResourceStream(resourceName);
@@ -180,8 +176,8 @@ namespace MuseumSpaceInstaller.Services
                 }
                 else
                 {
-                    // Fallback: поиск рядом с exe
-                    string localPath = Path.Combine(Path.GetDirectoryName(assembly.Location)!, "dotnet-runtime", installerName);
+                    string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+                    string localPath = Path.Combine(appDir, "dotnet-runtime", installerName);
                     if (File.Exists(localPath))
                     {
                         File.Copy(localPath, tempPath, true);

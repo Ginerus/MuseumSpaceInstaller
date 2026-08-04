@@ -1,5 +1,6 @@
 using MuseumSpaceInstaller.Models;
 using MuseumSpaceInstaller.Services;
+using System.IO;
 using System.Windows;
 
 namespace MuseumSpaceInstaller
@@ -10,11 +11,10 @@ namespace MuseumSpaceInstaller
         {
             base.OnStartup(e);
 
-            // Проверка режима удаления
             if (UninstallerHelper.IsUninstallMode())
             {
                 var manifest = LoadManifestForUninstall();
-                string installPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
+                string installPath = AppContext.BaseDirectory.TrimEnd('\\', '/');
                 UninstallerHelper.RunUninstall(installPath, manifest);
                 Shutdown();
                 return;
@@ -27,7 +27,7 @@ namespace MuseumSpaceInstaller
             using var stream = assembly.GetManifestResourceStream("MuseumSpaceInstaller.Resources.manifest.json");
             if (stream != null)
             {
-                using var reader = new System.IO.StreamReader(stream);
+                using var reader = new StreamReader(stream);
                 var json = reader.ReadToEnd();
                 return Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(json) ?? new Manifest();
             }

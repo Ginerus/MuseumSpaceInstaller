@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using IWshRuntimeLibrary;
+using System.Runtime.InteropServices;
 
 namespace MuseumSpaceInstaller.Services
 {
@@ -24,12 +24,19 @@ namespace MuseumSpaceInstaller.Services
         {
             try
             {
-                var shell = new WshShell();
-                IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
+                Type? shellType = Type.GetTypeFromProgID("WScript.Shell");
+                if (shellType == null) return;
+
+                dynamic shell = Activator.CreateInstance(shellType)!;
+                dynamic shortcut = shell.CreateShortcut(shortcutPath);
+
                 shortcut.TargetPath = targetPath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath) ?? string.Empty;
                 shortcut.IconLocation = iconPath ?? (targetPath + ",0");
                 shortcut.Save();
+
+                Marshal.ReleaseComObject(shortcut);
+                Marshal.ReleaseComObject(shell);
             }
             catch { }
         }
