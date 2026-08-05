@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;  // ← ДОБАВИТЬ
 
 namespace MuseumSpaceInstaller.Services
 {

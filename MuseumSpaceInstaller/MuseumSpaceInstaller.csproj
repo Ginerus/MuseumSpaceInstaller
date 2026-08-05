@@ -20,7 +20,6 @@
     <ItemGroup>
         <None Remove="Resources\manifest.json" />
         <None Remove="Resources\logo.png" />
-        <None Remove="Resources\logo.ico" />
     </ItemGroup>
 
     <ItemGroup>

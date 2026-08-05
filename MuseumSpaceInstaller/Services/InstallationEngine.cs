@@ -197,6 +197,11 @@ namespace MuseumSpaceInstaller.Services
                 ZipFile.ExtractToDirectory(zipPath, tempPayload);
                 try { File.Delete(zipPath); } catch { }
 
+                // Если ZIP содержит корневую папку Payload — возвращаем её содержимое
+                string nestedPayload = Path.Combine(tempPayload, "Payload");
+                if (Directory.Exists(nestedPayload))
+                    return nestedPayload;
+
                 return tempPayload;
             }
             catch

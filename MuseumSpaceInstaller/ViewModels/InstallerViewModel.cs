@@ -26,6 +26,9 @@ namespace MuseumSpaceInstaller.ViewModels
         private bool _createDesktopShortcut = true;
         private string _statusMessage = "";
         private string _versionComparisonResult = "";
+        private string? _existingInstallPath;
+        private string? _existingVersion;
+        private bool _isUpdate;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -118,22 +121,28 @@ namespace MuseumSpaceInstaller.ViewModels
 
         private void CheckSystem()
         {
-            // Проверка версии
-            var installedVersion = SystemChecker.GetInstalledVersion(_manifest.ApplicationName);
-            if (!string.IsNullOrEmpty(installedVersion))
+            _isUpdate = SystemChecker.IsInstalled(
+                _manifest.ProductCode,
+                _manifest.ApplicationName,
+                out _existingVersion,
+                out _existingInstallPath);
+
+            if (_isUpdate)
             {
-                var comparison = CompareVersions(installedVersion, _manifest.Version);
+                var comparison = CompareVersions(_existingVersion ?? "0.0.0", _manifest.Version);
                 if (comparison == 0)
                 {
-                    VersionComparisonResult = "У вас уже установлена актуальная версия программы.";
+                    VersionComparisonResult = $"У вас уже установлена актуальная версия программы ({_existingVersion}).";
                 }
                 else if (comparison > 0)
                 {
-                    VersionComparisonResult = $"На компьютере установлена более новая версия ({installedVersion}).\nПродолжить установку более старой версии?";
+                    VersionComparisonResult = $"На компьютере установлена более новая версия ({_existingVersion}).\nПродолжить установку более старой версии?";
                 }
                 else
                 {
-                    VersionComparisonResult = $"Будет выполнено обновление с версии {installedVersion} до {_manifest.Version}.";
+                    VersionComparisonResult = $"Будет выполнено обновление с версии {_existingVersion} до {_manifest.Version}.";
+                    if (!string.IsNullOrEmpty(_existingInstallPath))
+                        InstallPath = _existingInstallPath;
                 }
             }
             else
@@ -141,7 +150,6 @@ namespace MuseumSpaceInstaller.ViewModels
                 VersionComparisonResult = $"Будет установлена версия {_manifest.Version}.";
             }
 
-            // Проверка запущенного приложения
             if (SystemChecker.IsApplicationRunning(Path.GetFileNameWithoutExtension(_manifest.ExecutableName)))
             {
                 StatusMessage = "Обнаружено, что MuseumSpace сейчас работает. Закройте программу для продолжения.";
@@ -183,7 +191,6 @@ namespace MuseumSpaceInstaller.ViewModels
 
         private async Task StartInstallAsync()
         {
-            // Проверка запущенного приложения
             if (SystemChecker.IsApplicationRunning(Path.GetFileNameWithoutExtension(_manifest.ExecutableName)))
             {
                 var retry = MessageBox.Show(
@@ -199,7 +206,6 @@ namespace MuseumSpaceInstaller.ViewModels
                 }
             }
 
-            // Проверка свободного места
             long freeSpace = SystemChecker.GetFreeSpaceBytes(InstallPath);
             long requiredBytes = (long)_manifest.RequiredSpaceMB * 1024 * 1024;
             if (freeSpace < requiredBytes)
@@ -208,24 +214,25 @@ namespace MuseumSpaceInstaller.ViewModels
                 return;
             }
 
-            // Проверка системной директории
             if (SystemChecker.IsSystemDirectory(InstallPath))
             {
                 MessageBox.Show("Установка в системные каталоги запрещена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            // Проверка версии — если совпадает, спросить
-            var installedVersion = SystemChecker.GetInstalledVersion(_manifest.ApplicationName);
-            if (!string.IsNullOrEmpty(installedVersion) && CompareVersions(installedVersion, _manifest.Version) == 0)
+            if (_isUpdate)
             {
-                var res = MessageBox.Show("У вас уже установлена актуальная версия программы.\nПереустановить?", "Версия совпадает", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (res == MessageBoxResult.No) return;
-            }
-            else if (!string.IsNullOrEmpty(installedVersion) && CompareVersions(installedVersion, _manifest.Version) > 0)
-            {
-                var res = MessageBox.Show("На компьютере установлена более новая версия программы.\nПродолжить установку более старой версии?", "Внимание", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (res == MessageBoxResult.No) return;
+                var comparison = CompareVersions(_existingVersion ?? "0.0.0", _manifest.Version);
+                if (comparison == 0)
+                {
+                    var res = MessageBox.Show("У вас уже установлена актуальная версия программы.\nПереустановить?", "Версия совпадает", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (res == MessageBoxResult.No) return;
+                }
+                else if (comparison > 0)
+                {
+                    var res = MessageBox.Show("На компьютере установлена более новая версия программы.\nПродолжить установку более старой версии?", "Внимание", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (res == MessageBoxResult.No) return;
+                }
             }
 
             IsInstalling = true;

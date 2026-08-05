@@ -45,7 +45,6 @@ namespace MuseumSpaceInstaller.Services
                     }
                 }
 
-                // Fallback: проверка через dotnet --list-runtimes
                 var psi = new ProcessStartInfo
                 {
                     FileName = "dotnet",
@@ -78,40 +77,90 @@ namespace MuseumSpaceInstaller.Services
             catch { return 0; }
         }
 
-        public static string? GetInstalledVersion(string appName)
+        public static bool IsInstalled(string productCode, string appName, out string? version, out string? installLocation)
         {
-            try
+            version = null;
+            installLocation = null;
+
+            string[] registryPaths = new[]
             {
-                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                if (key != null)
+                $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}",
+                $@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}"
+            };
+
+            foreach (var regPath in registryPaths)
+            {
+                try
                 {
+                    using var key = Registry.LocalMachine.OpenSubKey(regPath);
+                    if (key != null)
+                    {
+                        var name = key.GetValue("DisplayName") as string;
+                        var loc = key.GetValue("InstallLocation") as string;
+                        var ver = key.GetValue("DisplayVersion") as string;
+
+                        if (!string.IsNullOrEmpty(name) && name == appName)
+                        {
+                            installLocation = loc;
+                            version = ver;
+
+                            if (!string.IsNullOrEmpty(loc) && Directory.Exists(loc))
+                            {
+                                string exePath = Path.Combine(loc, "MuseumSpace.exe");
+                                if (File.Exists(exePath))
+                                    return true;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            string[] fallbackPaths = new[]
+            {
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+            };
+
+            foreach (var basePath in fallbackPaths)
+            {
+                try
+                {
+                    using var key = Registry.LocalMachine.OpenSubKey(basePath);
+                    if (key == null) continue;
+
                     foreach (var subKeyName in key.GetSubKeyNames())
                     {
-                        using var subKey = key.OpenSubKey(subKeyName);
-                        var name = subKey?.GetValue("DisplayName") as string;
-                        if (name == appName)
+                        try
                         {
-                            return subKey?.GetValue("DisplayVersion") as string;
-                        }
-                    }
-                }
+                            using var subKey = key.OpenSubKey(subKeyName);
+                            if (subKey == null) continue;
 
-                using var key64 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-                if (key64 != null)
-                {
-                    foreach (var subKeyName in key64.GetSubKeyNames())
-                    {
-                        using var subKey = key64.OpenSubKey(subKeyName);
-                        var name = subKey?.GetValue("DisplayName") as string;
-                        if (name == appName)
-                        {
-                            return subKey?.GetValue("DisplayVersion") as string;
+                            var name = subKey.GetValue("DisplayName") as string;
+                            if (name == appName)
+                            {
+                                var loc = subKey.GetValue("InstallLocation") as string;
+                                var ver = subKey.GetValue("DisplayVersion") as string;
+
+                                if (!string.IsNullOrEmpty(loc) && Directory.Exists(loc))
+                                {
+                                    string exePath = Path.Combine(loc, "MuseumSpace.exe");
+                                    if (File.Exists(exePath))
+                                    {
+                                        installLocation = loc;
+                                        version = ver;
+                                        return true;
+                                    }
+                                }
+                            }
                         }
+                        catch { continue; }
                     }
                 }
+                catch { }
             }
-            catch { }
-            return null;
+
+            return false;
         }
 
         public static bool IsApplicationRunning(string processName)
@@ -123,7 +172,6 @@ namespace MuseumSpaceInstaller.Services
         public static bool IsSystemDirectory(string path)
         {
             var full = Path.GetFullPath(path).TrimEnd('\\', '/').ToLowerInvariant();
-
             var systemPaths = new[]
             {
                 @"c:\",
