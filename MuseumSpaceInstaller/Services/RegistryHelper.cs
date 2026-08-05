@@ -8,6 +8,9 @@ namespace MuseumSpaceInstaller.Services
     {
         public static void RegisterApplication(Manifest manifest, string installPath)
         {
+            // ”дал€ем старые записи, если есть (чтобы не дублировались при переустановке)
+            UnregisterApplication(manifest.ProductCode);
+
             string uninstallKey = $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{manifest.ProductCode}";
             using var key = Registry.LocalMachine.CreateSubKey(uninstallKey);
             if (key == null) return;
@@ -18,7 +21,6 @@ namespace MuseumSpaceInstaller.Services
             key.SetValue("InstallLocation", installPath);
             key.SetValue("UninstallString", manifest.Registry.UninstallString.Replace("{INSTALL_DIR}", installPath));
 
-            // »конка: logo.ico если есть, иначе exe
             string iconPath = Path.Combine(installPath, "logo.ico");
             if (File.Exists(iconPath))
                 key.SetValue("DisplayIcon", iconPath);
@@ -36,12 +38,21 @@ namespace MuseumSpaceInstaller.Services
 
         public static void UnregisterApplication(string productCode)
         {
-            string uninstallKey = $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}";
-            try
+            // ”дал€ем из обеих веток Ч обычной и WOW6432Node
+            string[] keys = new[]
             {
-                Registry.LocalMachine.DeleteSubKeyTree(uninstallKey, false);
+                $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}",
+                $@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}"
+            };
+
+            foreach (var keyPath in keys)
+            {
+                try
+                {
+                    Registry.LocalMachine.DeleteSubKeyTree(keyPath, false);
+                }
+                catch { }
             }
-            catch { }
         }
     }
 }
