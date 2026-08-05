@@ -18,6 +18,7 @@
 	</PropertyGroup>
 
     <ItemGroup>
+        <None Remove="Resources\logo.ico" />
         <None Remove="Resources\manifest.json" />
         <None Remove="Resources\logo.png" />
     </ItemGroup>
@@ -29,6 +30,7 @@
 	<ItemGroup>
         <EmbeddedResource Include="Resources\manifest.json" />
         <EmbeddedResource Include="Resources\Payload.zip" />
+        <Resource Include="Resources\logo.ico" />
         <Resource Include="Resources\logo.png" />
     </ItemGroup>
 

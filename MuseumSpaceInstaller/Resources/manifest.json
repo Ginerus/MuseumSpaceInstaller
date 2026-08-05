@@ -1,8 +1,8 @@
 {
   "applicationName": "MuseumSpace",
-  "displayName": "MuseumSpace — Система управления экспонатами",
+  "displayName": "MuseumSpace",
   "version": "1.0.0",
-  "publisher": "MuseumSpace Team",
+  "publisher": "Gera IRS",
   "executableName": "MuseumSpace.exe",
   "defaultInstallPath": "C:\\Program Files\\MuseumSpace",
   "requiredSpaceMB": 300,
@@ -25,7 +25,7 @@
   },
   "registry": {
     "displayName": "MuseumSpace",
-    "publisher": "MuseumSpace Team",
+    "publisher": "Gera IRS",
     "displayVersion": "1.0.0",
     "installLocation": "{INSTALL_DIR}",
     "uninstallString": "\"{INSTALL_DIR}\\Uninstall.exe\"",
