@@ -2,17 +2,22 @@ using MuseumSpaceInstaller.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace MuseumSpaceInstaller.Services
 {
     public static class UninstallerHelper
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool MoveFileEx(string lpExistingFileName, string? lpNewFileName, int dwFlags);
+
+        private const int MOVEFILE_DELAY_UNTIL_REBOOT = 0x4;
+
         public static void CreateUninstaller(string installPath, Manifest manifest)
         {
             string uninstallerPath = Path.Combine(installPath, "Uninstall.exe");
-            string assemblyPath = Process.GetCurrentProcess().MainModule!.FileName;
+            string assemblyPath = Environment.ProcessPath!;
             File.Copy(assemblyPath, uninstallerPath, true);
 
             string markerPath = Path.Combine(installPath, ".uninstall");
@@ -31,6 +36,7 @@ namespace MuseumSpaceInstaller.Services
 
             try
             {
+                // Удаление ярлыков
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
                 string desktopShortcut = Path.Combine(desktopPath, $"{manifest.DisplayName}.lnk");
                 if (File.Exists(desktopShortcut)) File.Delete(desktopShortcut);
@@ -40,8 +46,10 @@ namespace MuseumSpaceInstaller.Services
                 if (Directory.Exists(appFolder))
                     Directory.Delete(appFolder, true);
 
+                // Удаление записей реестра
                 RegistryHelper.UnregisterApplication(manifest.ProductCode);
 
+                // Удаляем всё содержимое папки, кроме запущенного Uninstall.exe
                 if (Directory.Exists(installPath))
                 {
                     foreach (var configFile in manifest.ConfigFiles)
@@ -52,10 +60,32 @@ namespace MuseumSpaceInstaller.Services
                             try { File.Delete(configPath); } catch { }
                         }
                     }
-                    Directory.Delete(installPath, true);
+
+                    // Удаляем все файлы кроме Uninstall.exe и .uninstall
+                    foreach (var file in Directory.GetFiles(installPath))
+                    {
+                        string fileName = Path.GetFileName(file);
+                        if (fileName.Equals("Uninstall.exe", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (fileName.Equals(".uninstall", StringComparison.OrdinalIgnoreCase)) continue;
+                        try { File.Delete(file); } catch { }
+                    }
+
+                    // Удаляем все подпапки
+                    foreach (var dir in Directory.GetDirectories(installPath))
+                    {
+                        try { Directory.Delete(dir, true); } catch { }
+                    }
+
+                    // Откладываем удаление самого Uninstall.exe и .uninstall на перезагрузку
+                    string uninstallerPath = Path.Combine(installPath, "Uninstall.exe");
+                    string markerPath = Path.Combine(installPath, ".uninstall");
+
+                    MoveFileEx(uninstallerPath, null, MOVEFILE_DELAY_UNTIL_REBOOT);
+                    MoveFileEx(markerPath, null, MOVEFILE_DELAY_UNTIL_REBOOT);
+                    MoveFileEx(installPath, null, MOVEFILE_DELAY_UNTIL_REBOOT);
                 }
 
-                MessageBox.Show("MuseumSpace успешно удалён.", "Удаление завершено", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("MuseumSpace успешно удалён. Некоторые файлы будут удалены после перезагрузки.", "Удаление завершено", MessageBoxButton.OK, MessageBoxImage.Information);
                 Environment.Exit(0);
             }
             catch (Exception ex)

@@ -2,6 +2,7 @@ using MuseumSpaceInstaller.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -60,6 +61,7 @@ namespace MuseumSpaceInstaller.Services
                 Directory.CreateDirectory(_installPath);
                 await Task.Delay(200, cancellationToken);
 
+                // Сохранение конфиг-файлов при обновлении
                 var backupDir = Path.Combine(Path.GetTempPath(), $"MuseumSpace_Backup_{Guid.NewGuid()}");
                 bool isUpdate = Directory.Exists(_installPath) && File.Exists(Path.Combine(_installPath, _manifest.ExecutableName));
                 if (isUpdate)
@@ -78,14 +80,19 @@ namespace MuseumSpaceInstaller.Services
                     }
                 }
 
-                Report("Копирование файлов", 40, "Копирование файлов приложения...");
-                string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
-                string sourcePath = Path.Combine(appDir, "Payload");
-                if (Directory.Exists(sourcePath))
+                // Извлечение Payload из ресурсов
+                Report("Копирование файлов", 35, "Распаковка файлов установки...");
+                string sourcePath = ExtractPayload();
+                if (string.IsNullOrEmpty(sourcePath))
                 {
-                    await CopyDirectoryAsync(sourcePath, _installPath, cancellationToken);
+                    MessageBox.Show("Не удалось извлечь файлы для установки.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
                 }
 
+                Report("Копирование файлов", 40, "Копирование файлов приложения...");
+                await CopyDirectoryAsync(sourcePath, _installPath, cancellationToken);
+
+                // Копирование нужной архитектуры libvlc
                 Report("Копирование файлов", 60, $"Копирование библиотек для архитектуры {arch}...");
                 var archInfo = arch == "x64" ? _manifest.Architecture.X64 : _manifest.Architecture.X86;
                 string libvlcSource = Path.Combine(sourcePath, archInfo.LibVlcPath);
@@ -95,6 +102,7 @@ namespace MuseumSpaceInstaller.Services
                     await CopyDirectoryAsync(libvlcSource, libvlcDest, cancellationToken);
                 }
 
+                // Удаление ненужных архитектур libvlc если они попали
                 string libvlcX86 = Path.Combine(_installPath, "libvlc", "win-x86");
                 string libvlcX64 = Path.Combine(_installPath, "libvlc", "win-x64");
                 if (arch == "x64" && Directory.Exists(libvlcX86))
@@ -102,6 +110,7 @@ namespace MuseumSpaceInstaller.Services
                 if (arch == "x86" && Directory.Exists(libvlcX64))
                     Directory.Delete(libvlcX64, true);
 
+                // Восстановление конфиг-файлов
                 if (isUpdate && Directory.Exists(backupDir))
                 {
                     Report("Копирование файлов", 65, "Восстановление пользовательских настроек...");
@@ -158,6 +167,44 @@ namespace MuseumSpaceInstaller.Services
             }
         }
 
+        private string ExtractPayload()
+        {
+            // Режим разработки: Payload рядом с exe
+            string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            string devPayload = Path.Combine(appDir, "Payload");
+            if (Directory.Exists(devPayload))
+                return devPayload;
+
+            // Режим production: извлекаем ZIP из ресурсов
+            string tempPayload = Path.Combine(Path.GetTempPath(), "MuseumSpace_Payload");
+            if (Directory.Exists(tempPayload))
+            {
+                try { Directory.Delete(tempPayload, true); } catch { }
+            }
+
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                using var stream = assembly.GetManifestResourceStream("MuseumSpaceInstaller.Resources.Payload.zip");
+                if (stream == null) return string.Empty;
+
+                string zipPath = Path.Combine(Path.GetTempPath(), "MuseumSpace_Payload.zip");
+                using (var fs = new FileStream(zipPath, FileMode.Create))
+                {
+                    stream.CopyTo(fs);
+                }
+
+                ZipFile.ExtractToDirectory(zipPath, tempPayload);
+                try { File.Delete(zipPath); } catch { }
+
+                return tempPayload;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         private async Task<bool> InstallDotNetRuntimeAsync(string arch, CancellationToken cancellationToken)
         {
             try
@@ -166,21 +213,22 @@ namespace MuseumSpaceInstaller.Services
                 string installerName = Path.GetFileName(archInfo.DotnetRuntimeInstaller);
                 string tempPath = Path.Combine(Path.GetTempPath(), installerName);
 
-                string resourceName = $"MuseumSpaceInstaller.Resources.{installerName}";
-                var assembly = Assembly.GetExecutingAssembly();
-                using var stream = assembly.GetManifestResourceStream(resourceName);
-                if (stream != null)
+                // Ищем установщик в извлечённом Payload
+                string payloadPath = ExtractPayload();
+                string payloadRuntime = Path.Combine(payloadPath, "dotnet-runtime", installerName);
+
+                if (File.Exists(payloadRuntime))
                 {
-                    using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write);
-                    await stream.CopyToAsync(fs, cancellationToken);
+                    File.Copy(payloadRuntime, tempPath, true);
                 }
                 else
                 {
+                    // Fallback: рядом с exe (режим разработки)
                     string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
-                    string localPath = Path.Combine(appDir, "dotnet-runtime", installerName);
-                    if (File.Exists(localPath))
+                    string fallbackPath = Path.Combine(appDir, "Payload", "dotnet-runtime", installerName);
+                    if (File.Exists(fallbackPath))
                     {
-                        File.Copy(localPath, tempPath, true);
+                        File.Copy(fallbackPath, tempPath, true);
                     }
                     else
                     {
