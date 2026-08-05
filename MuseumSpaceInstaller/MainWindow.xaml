@@ -58,7 +58,7 @@
 
                 <!-- Низ панели -->
                 <TextBlock Grid.Row="2" 
-                           Text="© MuseumSpace Team" 
+                           Text="{Binding Manifest.Registry.Publisher}"
                            FontSize="11" 
                            Foreground="#8BB8E8" 
                            Margin="0,0,0,30"/>
