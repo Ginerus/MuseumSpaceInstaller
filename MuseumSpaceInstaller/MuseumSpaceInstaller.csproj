@@ -1,37 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <UseWPF>true</UseWPF>
-        <AssemblyName>MuseumSpaceInstaller</AssemblyName>
-        <RootNamespace>MuseumSpaceInstaller</RootNamespace>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
-        <ApplicationIcon>Resources\logo.ico</ApplicationIcon>
-        <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
-        <RuntimeIdentifier>win-x86</RuntimeIdentifier>
-        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<AssemblyName>MuseumSpaceInstaller</AssemblyName>
+		<RootNamespace>MuseumSpaceInstaller</RootNamespace>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<ApplicationIcon>Resources\logo.ico</ApplicationIcon>
+		<PublishSingleFile>true</PublishSingleFile>
+		<SelfContained>true</SelfContained>
+		<RuntimeIdentifier>win-x86</RuntimeIdentifier>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 	</PropertyGroup>
 
-    <ItemGroup>
-        <None Remove="Resources\logo.ico" />
-        <None Remove="Resources\manifest.json" />
-        <None Remove="Resources\logo.png" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    </ItemGroup>
-	
 	<ItemGroup>
-        <EmbeddedResource Include="Resources\manifest.json" />
-        <EmbeddedResource Include="Resources\Payload.zip" />
-        <Resource Include="Resources\logo.ico" />
-        <Resource Include="Resources\logo.png" />
-    </ItemGroup>
+		<None Remove="Resources\logo.ico" />
+		<None Remove="Resources\manifest.json" />
+		<None Remove="Resources\logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\manifest.json" />
+		<EmbeddedResource Include="Resources\Payload.zip" />
+		<EmbeddedResource Include="Resources\eula.txt" />
+		<Resource Include="Resources\logo.ico" />
+		<Resource Include="Resources\logo.png" />
+	</ItemGroup>
 
 </Project>
