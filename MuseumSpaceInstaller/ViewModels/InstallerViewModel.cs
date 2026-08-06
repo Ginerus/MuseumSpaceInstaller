@@ -2,6 +2,7 @@ using MuseumSpaceInstaller.Models;
 using MuseumSpaceInstaller.Services;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -17,18 +18,21 @@ namespace MuseumSpaceInstaller.ViewModels
     public class InstallerViewModel : INotifyPropertyChanged
     {
         private readonly Manifest _manifest;
-        private string _currentStage = "Добро пожаловать";
+        private string _currentStage = "Welcome";
         private int _progressPercent;
         private string _progressDetail = "";
         private bool _isIndeterminate;
         private bool _isInstalling;
         private string _installPath;
         private bool _createDesktopShortcut = true;
+        private bool _createStartMenuShortcut = true;
         private string _statusMessage = "";
         private string _versionComparisonResult = "";
         private string? _existingInstallPath;
         private string? _existingVersion;
         private bool _isUpdate;
+        private bool _isEulaAccepted;
+        private string _eulaText = "Загрузка лицензионного соглашения...";
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -36,13 +40,16 @@ namespace MuseumSpaceInstaller.ViewModels
         {
             _manifest = LoadManifest();
             _installPath = _manifest.DefaultInstallPath;
-
+            LoadEula();
             CheckSystem();
 
+            NextCommand = new RelayCommand(GoNext, () => !IsInstalling && CanGoNext);
+            BackCommand = new RelayCommand(GoBack, () => !IsInstalling && CanGoBack);
             StartInstallCommand = new RelayCommand(async () => await StartInstallAsync(), () => !IsInstalling);
             BrowseFolderCommand = new RelayCommand(BrowseFolder);
             CancelCommand = new RelayCommand(() => Application.Current.Shutdown());
             FinishCommand = new RelayCommand(() => Application.Current.Shutdown());
+            LaunchAndFinishCommand = new RelayCommand(LaunchAndFinish);
         }
 
         public Manifest Manifest => _manifest;
@@ -50,7 +57,13 @@ namespace MuseumSpaceInstaller.ViewModels
         public string CurrentStage
         {
             get => _currentStage;
-            set { _currentStage = value; OnPropertyChanged(); }
+            set
+            {
+                _currentStage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanGoBack));
+                OnPropertyChanged(nameof(CanGoNext));
+            }
         }
 
         public int ProgressPercent
@@ -74,7 +87,14 @@ namespace MuseumSpaceInstaller.ViewModels
         public bool IsInstalling
         {
             get => _isInstalling;
-            set { _isInstalling = value; OnPropertyChanged(); ((RelayCommand)StartInstallCommand).RaiseCanExecuteChanged(); }
+            set
+            {
+                _isInstalling = value;
+                OnPropertyChanged();
+                ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)BackCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)StartInstallCommand).RaiseCanExecuteChanged();
+            }
         }
 
         public string InstallPath
@@ -89,6 +109,12 @@ namespace MuseumSpaceInstaller.ViewModels
             set { _createDesktopShortcut = value; OnPropertyChanged(); }
         }
 
+        public bool CreateStartMenuShortcut
+        {
+            get => _createStartMenuShortcut;
+            set { _createStartMenuShortcut = value; OnPropertyChanged(); }
+        }
+
         public string StatusMessage
         {
             get => _statusMessage;
@@ -101,10 +127,73 @@ namespace MuseumSpaceInstaller.ViewModels
             set { _versionComparisonResult = value; OnPropertyChanged(); }
         }
 
+        public bool IsEulaAccepted
+        {
+            get => _isEulaAccepted;
+            set { _isEulaAccepted = value; OnPropertyChanged(); }
+        }
+
+        public string EulaText
+        {
+            get => _eulaText;
+            set { _eulaText = value; OnPropertyChanged(); }
+        }
+
+        public bool CanGoBack => CurrentStage is "License" or "PathSelection";
+        public bool CanGoNext => CurrentStage is "Welcome" or "License";
+
+        public ICommand NextCommand { get; }
+        public ICommand BackCommand { get; }
         public ICommand StartInstallCommand { get; }
         public ICommand BrowseFolderCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand FinishCommand { get; }
+        public ICommand LaunchAndFinishCommand { get; }
+
+        private void GoNext()
+        {
+            switch (CurrentStage)
+            {
+                case "Welcome":
+                    CurrentStage = "License";
+                    break;
+                case "License":
+                    if (!IsEulaAccepted)
+                    {
+                        MessageBox.Show(
+                            "Чтобы продолжить установку, необходимо принять лицензионное соглашение.",
+                            "Лицензионное соглашение",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        return;
+                    }
+                    CurrentStage = "PathSelection";
+                    break;
+            }
+        }
+
+        private void GoBack()
+        {
+            switch (CurrentStage)
+            {
+                case "License":
+                    CurrentStage = "Welcome";
+                    break;
+                case "PathSelection":
+                    CurrentStage = "License";
+                    break;
+            }
+        }
+
+        private void LaunchAndFinish()
+        {
+            string exePath = Path.Combine(InstallPath, _manifest.ExecutableName);
+            if (File.Exists(exePath))
+            {
+                Process.Start(new ProcessStartInfo(exePath) { UseShellExecute = true });
+            }
+            Application.Current.Shutdown();
+        }
 
         private Manifest LoadManifest()
         {
@@ -117,6 +206,28 @@ namespace MuseumSpaceInstaller.ViewModels
                 return JsonConvert.DeserializeObject<Manifest>(json) ?? new Manifest();
             }
             return new Manifest();
+        }
+
+        private void LoadEula()
+        {
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                using var stream = assembly.GetManifestResourceStream("MuseumSpaceInstaller.Resources.eula.txt");
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    EulaText = reader.ReadToEnd();
+                }
+                else
+                {
+                    EulaText = "Лицензионное соглашение не найдено. Обратитесь к разработчику.";
+                }
+            }
+            catch
+            {
+                EulaText = "Не удалось загрузить лицензионное соглашение.";
+            }
         }
 
         private void CheckSystem()
@@ -236,18 +347,23 @@ namespace MuseumSpaceInstaller.ViewModels
             }
 
             IsInstalling = true;
-            CurrentStage = "Установка";
+            CurrentStage = "Installing";
 
-            var engine = new InstallationEngine(_manifest, InstallPath, CreateDesktopShortcut, progress =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
+            var engine = new InstallationEngine(
+                _manifest,
+                InstallPath,
+                CreateDesktopShortcut,
+                CreateStartMenuShortcut,
+                progress =>
                 {
-                    CurrentStage = progress.Stage;
-                    ProgressPercent = progress.ProgressPercent;
-                    ProgressDetail = progress.Detail;
-                    IsIndeterminate = progress.IsIndeterminate;
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        CurrentStage = progress.Stage;
+                        ProgressPercent = progress.ProgressPercent;
+                        ProgressDetail = progress.Detail;
+                        IsIndeterminate = progress.IsIndeterminate;
+                    });
                 });
-            });
 
             var cts = new CancellationTokenSource();
             bool success = await engine.InstallAsync(cts.Token);
@@ -256,7 +372,7 @@ namespace MuseumSpaceInstaller.ViewModels
 
             if (success)
             {
-                CurrentStage = "Готово";
+                CurrentStage = "Finish";
                 ProgressPercent = 100;
                 ProgressDetail = "Установка завершена успешно!";
             }
