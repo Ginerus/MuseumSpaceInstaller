@@ -18,7 +18,7 @@ namespace MuseumSpaceInstaller.Views
     /// <summary>
     /// Логика взаимодействия для LicensePage.xaml
     /// </summary>
-    public partial class LicensePage : UserControl
+    public partial class LicensePage
     {
         public LicensePage()
         {

@@ -18,7 +18,7 @@ namespace MuseumSpaceInstaller.Views
     /// <summary>
     /// Логика взаимодействия для PathSelectionPage.xaml
     /// </summary>
-    public partial class PathSelectionPage : UserControl
+    public partial class PathSelectionPage
     {
         public PathSelectionPage()
         {
