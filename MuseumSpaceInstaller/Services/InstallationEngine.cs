@@ -24,13 +24,15 @@ namespace MuseumSpaceInstaller.Services
         private readonly Manifest _manifest;
         private readonly string _installPath;
         private readonly bool _createDesktopShortcut;
+        private readonly bool _createStartMenuShortcut;
         private readonly Action<InstallationProgress>? _onProgress;
 
-        public InstallationEngine(Manifest manifest, string installPath, bool createDesktopShortcut, Action<InstallationProgress>? onProgress = null)
+        public InstallationEngine(Manifest manifest, string installPath, bool createDesktopShortcut, bool createStartMenuShortcut, Action<InstallationProgress>? onProgress = null)
         {
             _manifest = manifest;
             _installPath = installPath;
             _createDesktopShortcut = createDesktopShortcut;
+            _createStartMenuShortcut = createStartMenuShortcut;
             _onProgress = onProgress;
         }
 
@@ -61,7 +63,6 @@ namespace MuseumSpaceInstaller.Services
                 Directory.CreateDirectory(_installPath);
                 await Task.Delay(200, cancellationToken);
 
-                // Сохранение конфиг-файлов при обновлении
                 var backupDir = Path.Combine(Path.GetTempPath(), $"MuseumSpace_Backup_{Guid.NewGuid()}");
                 bool isUpdate = Directory.Exists(_installPath) && File.Exists(Path.Combine(_installPath, _manifest.ExecutableName));
                 if (isUpdate)
@@ -80,7 +81,6 @@ namespace MuseumSpaceInstaller.Services
                     }
                 }
 
-                // Извлечение Payload из ресурсов
                 Report("Копирование файлов", 35, "Распаковка файлов установки...");
                 string sourcePath = ExtractPayload();
                 if (string.IsNullOrEmpty(sourcePath))
@@ -92,7 +92,6 @@ namespace MuseumSpaceInstaller.Services
                 Report("Копирование файлов", 40, "Копирование файлов приложения...");
                 await CopyDirectoryAsync(sourcePath, _installPath, cancellationToken);
 
-                // Копирование нужной архитектуры libvlc
                 Report("Копирование файлов", 60, $"Копирование библиотек для архитектуры {arch}...");
                 var archInfo = arch == "x64" ? _manifest.Architecture.X64 : _manifest.Architecture.X86;
                 string libvlcSource = Path.Combine(sourcePath, archInfo.LibVlcPath);
@@ -102,7 +101,6 @@ namespace MuseumSpaceInstaller.Services
                     await CopyDirectoryAsync(libvlcSource, libvlcDest, cancellationToken);
                 }
 
-                // Удаление ненужных архитектур libvlc если они попали
                 string libvlcX86 = Path.Combine(_installPath, "libvlc", "win-x86");
                 string libvlcX64 = Path.Combine(_installPath, "libvlc", "win-x64");
                 if (arch == "x64" && Directory.Exists(libvlcX86))
@@ -110,7 +108,6 @@ namespace MuseumSpaceInstaller.Services
                 if (arch == "x86" && Directory.Exists(libvlcX64))
                     Directory.Delete(libvlcX64, true);
 
-                // Восстановление конфиг-файлов
                 if (isUpdate && Directory.Exists(backupDir))
                 {
                     Report("Копирование файлов", 65, "Восстановление пользовательских настроек...");
@@ -127,18 +124,19 @@ namespace MuseumSpaceInstaller.Services
                     try { Directory.Delete(backupDir, true); } catch { }
                 }
 
+                // ===== ИСПРАВЛЕННЫЙ БЛОК ЯРЛЫКОВ =====
                 Report("Создание ярлыков", 75, "Создание ярлыков...");
                 string iconPath = Path.Combine(_installPath, "logo.ico");
                 if (File.Exists(iconPath))
                 {
-                    if (_manifest.Shortcuts.StartMenu)
+                    if (_createStartMenuShortcut && _manifest.Shortcuts.StartMenu)
                         ShortcutHelper.CreateStartMenuShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName), iconPath);
                     if (_createDesktopShortcut && _manifest.Shortcuts.Desktop)
                         ShortcutHelper.CreateDesktopShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName), iconPath);
                 }
                 else
                 {
-                    if (_manifest.Shortcuts.StartMenu)
+                    if (_createStartMenuShortcut && _manifest.Shortcuts.StartMenu)
                         ShortcutHelper.CreateStartMenuShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
                     if (_createDesktopShortcut && _manifest.Shortcuts.Desktop)
                         ShortcutHelper.CreateDesktopShortcut(_manifest.DisplayName, Path.Combine(_installPath, _manifest.ExecutableName));
@@ -169,13 +167,11 @@ namespace MuseumSpaceInstaller.Services
 
         private string ExtractPayload()
         {
-            // Режим разработки: Payload рядом с exe
             string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
             string devPayload = Path.Combine(appDir, "Payload");
             if (Directory.Exists(devPayload))
                 return devPayload;
 
-            // Режим production: извлекаем ZIP из ресурсов
             string tempPayload = Path.Combine(Path.GetTempPath(), "MuseumSpace_Payload");
             if (Directory.Exists(tempPayload))
             {
@@ -197,7 +193,6 @@ namespace MuseumSpaceInstaller.Services
                 ZipFile.ExtractToDirectory(zipPath, tempPayload);
                 try { File.Delete(zipPath); } catch { }
 
-                // Если ZIP содержит корневую папку Payload — возвращаем её содержимое
                 string nestedPayload = Path.Combine(tempPayload, "Payload");
                 if (Directory.Exists(nestedPayload))
                     return nestedPayload;
@@ -218,7 +213,6 @@ namespace MuseumSpaceInstaller.Services
                 string installerName = Path.GetFileName(archInfo.DotnetRuntimeInstaller);
                 string tempPath = Path.Combine(Path.GetTempPath(), installerName);
 
-                // Ищем установщик в извлечённом Payload
                 string payloadPath = ExtractPayload();
                 string payloadRuntime = Path.Combine(payloadPath, "dotnet-runtime", installerName);
 
@@ -228,7 +222,6 @@ namespace MuseumSpaceInstaller.Services
                 }
                 else
                 {
-                    // Fallback: рядом с exe (режим разработки)
                     string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
                     string fallbackPath = Path.Combine(appDir, "Payload", "dotnet-runtime", installerName);
                     if (File.Exists(fallbackPath))
