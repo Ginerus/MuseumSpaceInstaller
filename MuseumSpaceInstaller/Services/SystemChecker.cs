@@ -183,5 +183,19 @@ namespace MuseumSpaceInstaller.Services
             };
             return systemPaths.Contains(full);
         }
+
+        public static long GetDirectorySizeBytes(string path)
+        {
+            long size = 0;
+            try
+            {
+                foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+                {
+                    try { size += new FileInfo(file).Length; } catch { }
+                }
+            }
+            catch { }
+            return size;
+        }
     }
 }

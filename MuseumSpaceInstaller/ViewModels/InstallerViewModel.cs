@@ -1,6 +1,9 @@
+using Microsoft.Win32;
 using MuseumSpaceInstaller.Models;
 using MuseumSpaceInstaller.Services;
+using Newtonsoft.Json;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -10,8 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Win32;
-using Newtonsoft.Json;
 
 namespace MuseumSpaceInstaller.ViewModels
 {
@@ -33,6 +34,7 @@ namespace MuseumSpaceInstaller.ViewModels
         private bool _isUpdate;
         private bool _isEulaAccepted;
         private string _eulaText = "Загрузка лицензионного соглашения...";
+        public ObservableCollection<string> InstallationLog { get; } = new ObservableCollection<string>();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -376,6 +378,8 @@ namespace MuseumSpaceInstaller.ViewModels
             IsInstalling = true;
             CurrentStage = "Installing";
 
+            InstallationLog.Clear();
+
             var engine = new InstallationEngine(
                 _manifest,
                 InstallPath,
@@ -389,6 +393,14 @@ namespace MuseumSpaceInstaller.ViewModels
                         ProgressPercent = progress.ProgressPercent;
                         ProgressDetail = progress.Detail;
                         IsIndeterminate = progress.IsIndeterminate;
+                    });
+                },
+                line =>
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        InstallationLog.Add(line);
+                        while (InstallationLog.Count > 200) InstallationLog.RemoveAt(0);
                     });
                 });
 

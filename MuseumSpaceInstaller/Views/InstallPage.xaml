@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
 
         <!-- Заголовок -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,40">
+        <StackPanel Grid.Row="0" Margin="0,0,0,30">
             <TextBlock Text="Установка MuseumSpace" 
                        FontSize="28" FontWeight="Bold" 
                        Foreground="{StaticResource TextPrimary}"/>
@@ -20,52 +20,53 @@
                        Margin="0,8,0,0"/>
         </StackPanel>
 
-        <!-- Прогресс -->
-        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+        <!-- Центр: прогресс + терминал -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <!-- Текущий этап -->
             <TextBlock Text="{Binding CurrentStage}" 
                        FontSize="16" FontWeight="SemiBold"
                        Foreground="{StaticResource PrimaryBlue}"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,30"/>
+                       Margin="0,0,0,20"/>
 
             <!-- Прогресс-бар -->
             <ProgressBar Value="{Binding ProgressPercent}" 
                          Maximum="100"
                          Style="{StaticResource ModernProgressBar}"
                          IsIndeterminate="{Binding IsIndeterminate}"
-                         Margin="0,0,0,16"/>
+                         Margin="0,0,0,12"/>
 
             <!-- Процент -->
             <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}" 
                        FontSize="14" FontWeight="SemiBold"
                        Foreground="{StaticResource TextSecondary}"
                        HorizontalAlignment="Center"
-                       Visibility="{Binding IsIndeterminate, Converter={StaticResource InverseBoolean}}"/>
+                       Visibility="{Binding IsIndeterminate, Converter={StaticResource InverseBoolean}}"
+                       Margin="0,0,0,20"/>
 
-            <!-- Анимация точек -->
-            <TextBlock x:Name="DotsText" 
-                       Text="..." 
-                       FontSize="24"
-                       Foreground="{StaticResource PrimaryBlue}"
-                       HorizontalAlignment="Center"
-                       Margin="0,20,0,0"
-                       Visibility="{Binding IsIndeterminate, Converter={StaticResource BooleanToVisibility}}">
-                <TextBlock.Triggers>
-                    <EventTrigger RoutedEvent="TextBlock.Loaded">
-                        <BeginStoryboard>
-                            <Storyboard RepeatBehavior="Forever">
-                                <StringAnimationUsingKeyFrames Storyboard.TargetProperty="Text" Duration="0:0:1.5">
-                                    <DiscreteStringKeyFrame KeyTime="0:0:0" Value="."/>
-                                    <DiscreteStringKeyFrame KeyTime="0:0:0.5" Value=".."/>
-                                    <DiscreteStringKeyFrame KeyTime="0:0:1" Value="..."/>
-                                    <DiscreteStringKeyFrame KeyTime="0:0:1.5" Value=""/>
-                                </StringAnimationUsingKeyFrames>
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                </TextBlock.Triggers>
-            </TextBlock>
+            <!-- Терминал-лог (светлый) -->
+            <Border Background="#FAFAFA" 
+                    CornerRadius="6" 
+                    BorderBrush="{StaticResource BorderLight}"
+                    BorderThickness="1"
+                    Height="220">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              x:Name="TerminalScroll">
+                    <ItemsControl ItemsSource="{Binding InstallationLog}"
+                                  FontFamily="Consolas, Courier New, monospace"
+                                  FontSize="12"
+                                  Foreground="{StaticResource TextPrimary}"
+                                  Margin="10,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" 
+                                           Margin="0,1"
+                                           TextWrapping="NoWrap"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
         </StackPanel>
 
         <!-- Нижняя панель -->

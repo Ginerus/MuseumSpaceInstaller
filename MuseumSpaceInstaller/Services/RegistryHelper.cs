@@ -8,7 +8,6 @@ namespace MuseumSpaceInstaller.Services
     {
         public static void RegisterApplication(Manifest manifest, string installPath)
         {
-            // Удаляем старые записи, если есть (чтобы не дублировались при переустановке)
             UnregisterApplication(manifest.ProductCode);
 
             string uninstallKey = $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{manifest.ProductCode}";
@@ -20,6 +19,15 @@ namespace MuseumSpaceInstaller.Services
             key.SetValue("DisplayVersion", manifest.Registry.DisplayVersion);
             key.SetValue("InstallLocation", installPath);
             key.SetValue("UninstallString", manifest.Registry.UninstallString.Replace("{INSTALL_DIR}", installPath));
+
+            // Размер в КБ (DWORD) — Windows показывает в списке приложений
+            long sizeBytes = SystemChecker.GetDirectorySizeBytes(installPath);
+            int sizeKb = (int)(sizeBytes / 1024);
+            if (sizeKb > 0)
+                key.SetValue("EstimatedSize", sizeKb, RegistryValueKind.DWord);
+
+            // Дата установки (YYYYMMDD)
+            key.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd"));
 
             string iconPath = Path.Combine(installPath, "logo.ico");
             if (File.Exists(iconPath))
@@ -38,7 +46,6 @@ namespace MuseumSpaceInstaller.Services
 
         public static void UnregisterApplication(string productCode)
         {
-            // Удаляем из обеих веток — обычной и WOW6432Node
             string[] keys = new[]
             {
                 $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}",
