@@ -55,13 +55,19 @@
 
                 <Border Background="#FFF8E1" CornerRadius="8" Padding="16" Margin="0,0,0,20"
                         Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚠" FontSize="18" Foreground="{StaticResource WarningOrange}" Margin="0,0,10,0"/>
-                        <TextBlock Text="{Binding StatusMessage}" 
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="⚠" FontSize="18" 
+                                   Foreground="{StaticResource WarningOrange}" 
+                                   Margin="0,0,10,0" VerticalAlignment="Top"/>
+                        <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" 
                                    FontSize="13" 
                                    Foreground="{StaticResource WarningOrange}"
                                    TextWrapping="Wrap"/>
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
                 <TextBlock Text="Дополнительные задачи" 

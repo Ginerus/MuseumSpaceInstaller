@@ -188,10 +188,37 @@ namespace MuseumSpaceInstaller.ViewModels
         private void LaunchAndFinish()
         {
             string exePath = Path.Combine(InstallPath, _manifest.ExecutableName);
-            if (File.Exists(exePath))
+
+            if (!File.Exists(exePath))
             {
-                Process.Start(new ProcessStartInfo(exePath) { UseShellExecute = true });
+                MessageBox.Show($"Исполняемый файл не найден:\n{exePath}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Application.Current.Shutdown();
+                return;
             }
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    WorkingDirectory = InstallPath,
+                    Verb = "open"
+                };
+
+                using var process = Process.Start(psi);
+
+                // Даём процессу время на инициализацию перед закрытием установщика
+                if (process != null)
+                {
+                    process.WaitForInputIdle(3000);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось запустить MuseumSpace:\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
             Application.Current.Shutdown();
         }
 
