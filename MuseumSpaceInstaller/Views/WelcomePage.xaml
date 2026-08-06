@@ -4,103 +4,47 @@
       Title="WelcomePage">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Заголовок -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,30">
+        <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
             <TextBlock Text="Добро пожаловать" 
-                       FontSize="28" FontWeight="Bold" 
-                       Foreground="{StaticResource TextPrimary}"/>
+                       FontSize="32" FontWeight="Bold" 
+                       Foreground="{StaticResource TextPrimary}"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,16"/>
+
             <TextBlock Text="Мастер установки MuseumSpace" 
-                       FontSize="14" 
+                       FontSize="16" 
                        Foreground="{StaticResource TextSecondary}"
-                       Margin="0,8,0,0"/>
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,40"/>
+
+            <TextBlock Text="MuseumSpace — это современная система управления экспонатами музея. Программа позволяет каталогизировать коллекции, отслеживать состояние экспонатов, формировать отчёты и многое другое." 
+                       FontSize="13" 
+                       Foreground="{StaticResource TextSecondary}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       LineHeight="22"
+                       Margin="0,0,0,24"/>
+
+            <TextBlock Text="Чтобы начать установку, нажмите «Продолжить»." 
+                       FontSize="13" 
+                       Foreground="{StaticResource TextPrimary}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       FontWeight="SemiBold"/>
         </StackPanel>
 
-        <!-- Контент -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <!-- Статус версии -->
-                <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,0,0,20">
-                    <StackPanel>
-                        <TextBlock Text="Информация о версии" 
-                                   FontSize="13" FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding VersionComparisonResult}" 
-                                   FontSize="13" 
-                                   Foreground="{StaticResource TextSecondary}"
-                                   TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Предупреждение о запущенном приложении -->
-                <Border Background="#FFF8E1" CornerRadius="8" Padding="16" Margin="0,0,0,20"
-                        Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚠" FontSize="18" Foreground="{StaticResource WarningOrange}" Margin="0,0,10,0"/>
-                        <TextBlock Text="{Binding StatusMessage}" 
-                                   FontSize="13" 
-                                   Foreground="{StaticResource WarningOrange}"
-                                   TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Выбор пути -->
-                <TextBlock Text="Папка установки" 
-                           FontSize="13" FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                <Grid Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" 
-                             Text="{Binding InstallPath, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource ModernTextBox}"
-                             IsReadOnly="True"
-                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="1" 
-                            Content="Обзор..." 
-                            Style="{StaticResource SecondaryButton}"
-                            Command="{Binding BrowseFolderCommand}"
-                            Padding="16,8"/>
-                </Grid>
-
-                <!-- Чекбокс ярлыка -->
-                <CheckBox Content="Создать ярлык на рабочем столе" 
-                          IsChecked="{Binding CreateDesktopShortcut}"
-                          FontSize="13"
-                          Foreground="{StaticResource TextPrimary}"
-                          Margin="0,0,0,20">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-
-                <!-- Требования -->
-                <TextBlock Text="Требования к системе" 
-                           FontSize="13" FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                <TextBlock Text="• Windows 10 / 11 (x86 или x64)&#x0A;• ~300 МБ свободного места" 
-                           FontSize="12" 
-                           Foreground="{StaticResource TextSecondary}"
-                           TextWrapping="Wrap"/>
-            </StackPanel>
-        </ScrollViewer>
-
-        <!-- Кнопки -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="Отмена" 
                     Style="{StaticResource SecondaryButton}"
                     Command="{Binding CancelCommand}"
                     Margin="0,0,10,0"/>
-            <Button Content="Установить" 
+            <Button Content="Продолжить" 
                     Style="{StaticResource PrimaryButton}"
-                    Command="{Binding StartInstallCommand}"
-                    IsEnabled="{Binding IsInstalling, Converter={StaticResource InverseBoolean}}"/>
+                    Command="{Binding NextCommand}"/>
         </StackPanel>
     </Grid>
 </Page>
