@@ -1,7 +1,6 @@
 using MuseumSpaceInstaller.ViewModels;
 using MuseumSpaceInstaller.Views;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace MuseumSpaceInstaller
 {
@@ -15,7 +14,6 @@ namespace MuseumSpaceInstaller
             _viewModel = new InstallerViewModel();
             DataContext = _viewModel;
 
-            // ← добавлено: сразу показываем WelcomePage
             MainFrame.Navigate(new WelcomePage { DataContext = _viewModel });
 
             _viewModel.PropertyChanged += (s, e) =>
@@ -29,15 +27,22 @@ namespace MuseumSpaceInstaller
         {
             switch (_viewModel.CurrentStage)
             {
-                case "Готово":
-                    MainFrame.Navigate(new FinishPage { DataContext = _viewModel });
+                case "Welcome":
+                    MainFrame.Navigate(new WelcomePage { DataContext = _viewModel });
                     break;
-                case "Установка":
+                case "License":
+                    MainFrame.Navigate(new LicensePage { DataContext = _viewModel });
+                    break;
+                case "PathSelection":
+                    MainFrame.Navigate(new PathSelectionPage { DataContext = _viewModel });
+                    break;
+                case "Installing":
                 case "Ошибка":
                     MainFrame.Navigate(new InstallPage { DataContext = _viewModel });
                     break;
-                default:
-                    MainFrame.Navigate(new WelcomePage { DataContext = _viewModel });
+                case "Finish":
+                case "Готово":
+                    MainFrame.Navigate(new FinishPage { DataContext = _viewModel });
                     break;
             }
         }
