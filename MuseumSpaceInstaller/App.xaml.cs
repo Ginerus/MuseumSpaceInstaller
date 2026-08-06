@@ -14,7 +14,7 @@ namespace MuseumSpaceInstaller
             if (UninstallerHelper.IsUninstallMode())
             {
                 var manifest = LoadManifestForUninstall();
-                string installPath = AppContext.BaseDirectory.TrimEnd('\\', '/');
+                string installPath = Path.GetDirectoryName(Environment.ProcessPath)!;
                 UninstallerHelper.RunUninstall(installPath, manifest);
                 Shutdown();
                 return;

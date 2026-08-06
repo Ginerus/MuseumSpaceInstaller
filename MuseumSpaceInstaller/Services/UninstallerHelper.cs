@@ -36,7 +36,6 @@ namespace MuseumSpaceInstaller.Services
 
             try
             {
-                // Удаление ярлыков
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
                 string desktopShortcut = Path.Combine(desktopPath, $"{manifest.DisplayName}.lnk");
                 if (File.Exists(desktopShortcut)) File.Delete(desktopShortcut);
@@ -46,10 +45,8 @@ namespace MuseumSpaceInstaller.Services
                 if (Directory.Exists(appFolder))
                     Directory.Delete(appFolder, true);
 
-                // Удаление записей реестра
                 RegistryHelper.UnregisterApplication(manifest.ProductCode);
 
-                // Удаляем всё содержимое папки, кроме запущенного Uninstall.exe
                 if (Directory.Exists(installPath))
                 {
                     foreach (var configFile in manifest.ConfigFiles)
@@ -61,7 +58,6 @@ namespace MuseumSpaceInstaller.Services
                         }
                     }
 
-                    // Удаляем все файлы кроме Uninstall.exe и .uninstall
                     foreach (var file in Directory.GetFiles(installPath))
                     {
                         string fileName = Path.GetFileName(file);
@@ -70,13 +66,11 @@ namespace MuseumSpaceInstaller.Services
                         try { File.Delete(file); } catch { }
                     }
 
-                    // Удаляем все подпапки
                     foreach (var dir in Directory.GetDirectories(installPath))
                     {
                         try { Directory.Delete(dir, true); } catch { }
                     }
 
-                    // Откладываем удаление самого Uninstall.exe и .uninstall на перезагрузку
                     string uninstallerPath = Path.Combine(installPath, "Uninstall.exe");
                     string markerPath = Path.Combine(installPath, ".uninstall");
 
@@ -96,7 +90,7 @@ namespace MuseumSpaceInstaller.Services
 
         public static bool IsUninstallMode()
         {
-            string assemblyDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            string? assemblyDir = Path.GetDirectoryName(Environment.ProcessPath);
             if (string.IsNullOrEmpty(assemblyDir)) return false;
             return File.Exists(Path.Combine(assemblyDir, ".uninstall"));
         }
